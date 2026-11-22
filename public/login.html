@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#0C7C3F">
+<title>Đăng nhập · Hệ thống Đóng Hàng Tây Cát</title>
+<link rel="icon" href="/logo.png" type="image/png">
+<link rel="stylesheet" href="/style.css">
+<style>
+/* ================= GIAO DIỆN ĐĂNG NHẬP HIỆN ĐẠI (FLAT DESIGN) ================= */
+body.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px 16px;
+  background-color: var(--bg);
+  color: var(--text);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.login-wrapper {
+  width: 100%;
+  max-width: 420px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 32px 28px;
+  box-sizing: border-box;
+}
+
+.auth-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.logo-badge {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: var(--head);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.logo-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.auth-brand h1 {
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 6px;
+  letter-spacing: -0.02em;
+}
+
+.auth-brand p {
+  font-size: 13.5px;
+  color: var(--mute);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Tab chuyển đổi Đăng nhập / Đăng ký */
+.auth-segmented {
+  display: flex;
+  background: var(--head);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  margin-bottom: 24px;
+  gap: 4px;
+}
+
+.segmented-btn {
+  flex: 1;
+  padding: 9px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--mute);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.segmented-btn.active {
+  color: var(--pri);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+  font-weight: 700;
+}
+
+/* Các trường nhập liệu */
+.form-group {
+  margin-bottom: 18px;
+  text-align: left;
+}
+
+.form-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 7px;
+}
+
+.input-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input-box:focus-within {
+  border-color: var(--pri);
+  box-shadow: 0 0 0 3px var(--pri2);
+}
+
+.input-icon {
+  width: 18px;
+  height: 18px;
+  margin-left: 14px;
+  color: var(--mute);
+  flex-shrink: 0;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px 14px 12px 10px;
+  font-size: 14.5px;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.form-control::placeholder {
+  color: var(--mute);
+  opacity: 0.8;
+}
+
+.pw-toggle {
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  color: var(--mute);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pw-toggle:hover {
+  color: var(--text);
+}
+
+/* Khối thông báo vai trò khi đăng ký */
+.role-badge-box {
+  background: var(--head);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text2);
+}
+
+.role-badge-box .badge-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.role-badge-box b {
+  color: var(--pri);
+}
+
+/* Nút chính */
+.auth-submit-btn {
+  width: 100%;
+  padding: 13px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: var(--pri);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.15s ease, transform 0.05s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.auth-submit-btn:hover {
+  background-color: var(--pri3);
+}
+
+.auth-submit-btn:active {
+  transform: scale(0.99);
+}
+
+.auth-submit-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Footer & Bản quyền */
+.auth-footer {
+  text-align: center;
+  font-size: 12px;
+  color: var(--mute);
+  padding: 8px 0;
+}
+
+.auth-footer a {
+  color: var(--pri);
+  text-decoration: none;
+  font-weight: 600;
+}
+</style>
+</head>
+<body class="login-page">
+
+<div class="login-wrapper">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="logo-badge">
+        <img src="/logo.png" alt="Tây Cát">
+      </div>
+      <h1>Đóng Hàng</h1>
+    
+    </div>
+
+    <!-- Segmented Control chuyển đổi -->
+    <div class="auth-segmented" role="tablist">
+      <button class="segmented-btn active" id="tab-login" type="button" role="tab" aria-selected="true">Đăng nhập</button>
+      <button class="segmented-btn" id="tab-signup" type="button" role="tab" aria-selected="false">Đăng ký mới</button>
+    </div>
+
+    <!-- Form Đăng nhập -->
+    <form id="form-login">
+      <div class="form-group">
+        <label class="form-label" for="login-username">Tên đăng nhập</label>
+        <div class="input-box">
+          <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <input type="text" id="login-username" class="form-control" placeholder="Tên đăng nhập của bạn" required autocomplete="username" autofocus>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="login-password">Mật khẩu</label>
+        <div class="input-box">
+          <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <input type="password" id="login-password" class="form-control" placeholder="Nhập mật khẩu" required autocomplete="current-password">
+          <button type="button" class="pw-toggle" id="toggle-login-pw" title="Hiện/ẩn mật khẩu" aria-label="Hiện mật khẩu">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="auth-submit-btn" id="btn-submit-login">
+        <span>Đăng nhập</span>
+      </button>
+    </form>
+
+    <!-- Form Đăng ký -->
+    <form id="form-signup" style="display: none;">
+      <div class="form-group">
+        <label class="form-label" for="signup-name">Họ và tên người đóng hàng</label>
+        <div class="input-box">
+          <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <input type="text" id="signup-name" class="form-control" placeholder="vd: Nguyễn Thị Mai" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="signup-username">Tên đăng nhập</label>
+        <div class="input-box">
+          <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+            <polyline points="22,6 12,13 2,6"></polyline>
+          </svg>
+          <input type="text" id="signup-username" class="form-control" placeholder="Chữ thường, số, không dấu (vd: mai_kho)" required autocomplete="username">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="signup-password">Mật khẩu</label>
+        <div class="input-box">
+          <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <input type="password" id="signup-password" class="form-control" placeholder="Tối thiểu 4 ký tự" required autocomplete="new-password">
+          <button type="button" class="pw-toggle" id="toggle-signup-pw" title="Hiện/ẩn mật khẩu" aria-label="Hiện mật khẩu">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="role-badge-box">
+          <span class="badge-icon">📦</span>
+          <span>Vai trò tài khoản: <b>Người đóng hàng</b></span>
+        </div>
+      </div>
+
+      <button type="submit" class="auth-submit-btn" id="btn-submit-signup">
+        <span>Tạo tài khoản & Đăng nhập</span>
+      </button>
+    </form>
+  </div>
+
+  <div class="auth-footer">
+    &copy; 2026 NhatNM
+</div>
+
+<div id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => t.classList.remove('on'), 2800);
+}
+
+// Chuyển tab Đăng nhập / Đăng ký
+const tabLogin = $('#tab-login');
+const tabSignup = $('#tab-signup');
+const formLogin = $('#form-login');
+const formSignup = $('#form-signup');
+
+tabLogin.addEventListener('click', () => {
+  tabLogin.classList.add('active');
+  tabLogin.setAttribute('aria-selected', 'true');
+  tabSignup.classList.remove('active');
+  tabSignup.setAttribute('aria-selected', 'false');
+  formLogin.style.display = 'block';
+  formSignup.style.display = 'none';
+  $('#login-username').focus();
+});
+
+tabSignup.addEventListener('click', () => {
+  tabSignup.classList.add('active');
+  tabSignup.setAttribute('aria-selected', 'true');
+  tabLogin.classList.remove('active');
+  tabLogin.setAttribute('aria-selected', 'false');
+  formLogin.style.display = 'none';
+  formSignup.style.display = 'block';
+  $('#signup-name').focus();
+});
+
+// Hiện/ẩn mật khẩu
+function setupPwToggle(btnId, inputId) {
+  const btn = $(btnId);
+  const input = $(inputId);
+  if (!btn || !input) return;
+  btn.addEventListener('click', () => {
+    const isPw = input.type === 'password';
+    input.type = isPw ? 'text' : 'password';
+    btn.innerHTML = isPw
+      ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`
+      : `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+  });
+}
+setupPwToggle('#toggle-login-pw', '#login-password');
+setupPwToggle('#toggle-signup-pw', '#signup-password');
+
+// Submit Đăng nhập
+formLogin.addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = $('#btn-submit-login');
+  btn.disabled = true;
+  btn.innerHTML = '<span>Đang đăng nhập...</span>';
+
+  const username = $('#login-username').value.trim();
+  const password = $('#login-password').value;
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      toast(data.error || 'Đăng nhập không thành công');
+      btn.disabled = false;
+      btn.innerHTML = '<span>Đăng nhập</span>';
+      return;
+    }
+
+    if (data.token) {
+      try { localStorage.setItem('tc_token', data.token); } catch {}
+    }
+    toast('Đăng nhập thành công! Đang vào hệ thống...');
+    setTimeout(() => { window.location.href = '/'; }, 400);
+  } catch (err) {
+    toast('Lỗi kết nối máy chủ, vui lòng thử lại');
+    btn.disabled = false;
+    btn.innerHTML = '<span>Đăng nhập</span>';
+  }
+});
+
+// Submit Đăng ký
+formSignup.addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = $('#btn-submit-signup');
+  btn.disabled = true;
+  btn.innerHTML = '<span>Đang tạo tài khoản...</span>';
+
+  const display_name = $('#signup-name').value.trim();
+  const username = $('#signup-username').value.trim();
+  const password = $('#signup-password').value;
+  const role = 'packer';
+
+  try {
+    const res = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ display_name, username, password, role })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      toast(data.error || 'Đăng ký không thành công');
+      btn.disabled = false;
+      btn.innerHTML = '<span>Tạo tài khoản & Đăng nhập</span>';
+      return;
+    }
+
+    if (data.token) {
+      try { localStorage.setItem('tc_token', data.token); } catch {}
+    }
+    toast('Tạo tài khoản thành công! Đang vào hệ thống...');
+    setTimeout(() => { window.location.href = '/'; }, 400);
+  } catch (err) {
+    toast('Lỗi kết nối máy chủ, vui lòng thử lại');
+    btn.disabled = false;
+    btn.innerHTML = '<span>Tạo tài khoản & Đăng nhập</span>';
+  }
+});
+</script>
+</body>
+</html>
