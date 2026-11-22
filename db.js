@@ -18,10 +18,12 @@ const targetDb = path.join(DATA_DIR, 'orders.db');
 const seedDb = path.join(__dirname, 'seed_data', 'orders.db');
 
 // Tự động sao chép database ban đầu vào volume mount khi deploy mới
-if (!fs.existsSync(targetDb) && fs.existsSync(seedDb)) {
+// Nếu FORCE_SEED=1: luôn ghi đè DB (dùng để upload DB local lên Fly.io)
+const forceSeed = process.env.FORCE_SEED === '1';
+if (fs.existsSync(seedDb) && (!fs.existsSync(targetDb) || forceSeed)) {
   try {
     fs.copyFileSync(seedDb, targetDb);
-    console.log('Đã sao chép database ban đầu vào', targetDb);
+    console.log(forceSeed ? '[FORCE_SEED] Đã ghi đè database từ seed!' : 'Đã sao chép database ban đầu vào', targetDb);
   } catch (err) {
     console.error('Lỗi sao chép seed database:', err);
   }
