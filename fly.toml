@@ -7,12 +7,12 @@ primary_region = 'sin'
   destination = '/data'
 
 [http_service]
-  internal_port = 300
+  internal_port = 3000
   force_https = true
   auto_stop_machines = 'off'
   auto_start_machines = true
   min_machines_running = 1
 
 [[vm]]
-  size = "performance-1x"   # 1 Core CPU riêng biệt 100%
-  memory = "2gb"            # 2GB RAM
+  size = "performance-16x"   # 1 Core CPU riêng biệt 100%
+  memory = "32gb"            # 2GB RAM
