@@ -1,5 +1,17 @@
 import { Router } from 'express';
-import { db, kvGet, kvSet, setItemDone, completeOrder, addNotification, getNotifications } from '../db.js';
+import {
+  db,
+  kvGet,
+  kvSet,
+  setItemDone,
+  completeOrder,
+  deleteOrder,
+  addNotification,
+  getNotifications,
+  getAllUsers,
+  updateUserRole,
+  getUserById
+} from '../db.js';
 import { syncOdoo, isOdooConfigured } from '../odoo.js';
 import { authMiddleware } from './auth.js';
 
@@ -59,6 +71,18 @@ r.patch('/orders/:id', (req, res) => {
   res.json({ ok: true });
 });
 
+// Xóa đơn hàng (chỉ dành cho tài khoản Admin)
+r.delete('/orders/:id', (req, res) => {
+  if (req.user?.role !== 'admin') {
+    return res.status(403).json({ ok: false, error: 'Chỉ tài khoản admin mới có quyền xóa đơn hàng' });
+  }
+  const id = Number(req.params.id);
+  const ord = db.prepare('SELECT id, label FROM orders WHERE id=?').get(id);
+  if (!ord) return res.status(404).json({ ok: false, error: 'Không tìm thấy đơn hàng' });
+  deleteOrder(id);
+  res.json({ ok: true, message: `Đã xóa đơn ${ord.label}` });
+});
+
 // Quản lý nhắc nhở đơn chưa hoàn thành
 r.post('/orders/:id/remind', (req, res) => {
   const id = Number(req.params.id);
@@ -107,6 +131,31 @@ r.post('/mix-lot', (req, res) => {
   kvSet('mix_lot_' + dateKey, str);
   kvSet('mix_lot_latest', str);
   res.json({ ok: true, date: dateKey, lots });
+});
+
+// ================= ADMIN: QUẢN LÝ NGƯỜI DÙNG & PHÂN QUYỀN =================
+r.get('/users', (req, res) => {
+  if (req.user?.role !== 'admin') {
+    return res.status(403).json({ ok: false, error: 'Chỉ tài khoản admin mới có quyền xem danh sách người dùng' });
+  }
+  res.json({ ok: true, users: getAllUsers() });
+});
+
+r.patch('/users/:id/role', (req, res) => {
+  if (req.user?.role !== 'admin') {
+    return res.status(403).json({ ok: false, error: 'Chỉ tài khoản admin mới có quyền phân quyền người dùng' });
+  }
+  const id = Number(req.params.id);
+  const { role } = req.body || {};
+  if (role !== 'manager' && role !== 'packer') {
+    return res.status(400).json({ ok: false, error: 'Vai trò chỉ có thể là Quản lý (manager) hoặc Đóng hàng (packer)' });
+  }
+  try {
+    const updated = updateUserRole(id, role);
+    res.json({ ok: true, user: updated });
+  } catch (err) {
+    res.status(400).json({ ok: false, error: err.message });
+  }
 });
 
 export default r;

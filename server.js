@@ -35,18 +35,27 @@ app.use('/auth', authRouter);
 // Main API routes
 app.use('/api', apiRouter);
 
-// Clean URLs (Loại bỏ phần mở rộng .html)
-app.get('/login.html', (req, res) => res.redirect(301, '/login'));
-app.get('/index.html', (req, res) => res.redirect(301, '/'));
-
-app.get('/login', (req, res) => {
+// Clean URLs & Phục vụ giao diện HTML (hỗ trợ cả /login và /login.html)
+app.get(['/login', '/login.html'], (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
-// Static files (tự động nhận diện file .html nếu có)
+app.get(['/', '/index.html'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Static files (tự động nhận diện file tĩnh: css, js, png, svg...)
 app.use(express.static(path.join(__dirname, 'public'), {
   extensions: ['html']
 }));
+
+// Fallback: Mọi đường dẫn web không khớp sẽ trả về trang chính, tránh lỗi Cannot GET
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/api/') || req.path.startsWith('/auth/')) {
+    return res.status(404).json({ ok: false, error: 'Endpoint không tồn tại' });
+  }
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 const odooOn = isOdooConfigured();
 const pollSec = getOdooPollSec();

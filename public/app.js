@@ -1,3 +1,8 @@
+// Tự động làm sạch URL trên trình duyệt nếu còn đuôi .html
+if (window.location.pathname === '/index.html') {
+  window.history.replaceState(null, '', '/' + window.location.search);
+}
+
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const $ = s => document.querySelector(s);
 const IC_FLAG = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M5 3v18h2v-7h11l-2-4 2-4H7V3z"/></svg>';
@@ -190,8 +195,8 @@ function speakNewOrder(o) {
 }
 
 function notifyNewOrders(newOrders) {
-  // Người quản lý KHÔNG nhận thông báo đơn mới (theo yêu cầu)
-  if (S.user && S.user.role === 'manager') return;
+  // Người quản lý và Admin KHÔNG nhận chuông/TTS đơn mới
+  if (S.user && (S.user.role === 'manager' || S.user.role === 'admin')) return;
   if (!newOrders.length) return;
 
   // Lọc tách đơn qua đêm (từ 18h hôm trước đến 7h30 sáng nay) và đơn thông thường
@@ -689,7 +694,8 @@ function render() {
     ? (S.filter !== 'all' || S.q || S.date !== 'all' ? 'Không có đơn đã xong nào khớp bộ lọc' : 'Chưa có đơn nào hoàn tất')
     : (S.filter === 'all' && !S.q && S.date === 'all' ? 'Không còn đơn nào cần đóng' : 'Không có đơn nào khớp bộ lọc');
 
-  const isManager = S.user && S.user.role === 'manager';
+  const isManager = S.user && (S.user.role === 'manager' || S.user.role === 'admin');
+  const isAdmin = S.user && S.user.role === 'admin';
 
   $('#grid').innerHTML = list.length ? list.map(o => {
     const d = o.items.filter(i => i.done).length, t = o.items.length;
@@ -710,6 +716,7 @@ function render() {
           <div class="cust">${esc(o.customer)}</div>
         </div>
         ${isManager && !isDone ? `<button class="remind-btn" data-remind="${o.id}" title="Nhắc nhở đơn này">🔔 Nhắc nhở</button>` : ''}
+        ${isAdmin ? `<button class="del-card-btn" data-del-order="${o.id}" title="Xóa đơn hàng" style="color:var(--mute);padding:6px;border-radius:4px;display:flex;align-items:center" aria-label="Xóa đơn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>` : ''}
         <button class="star ${o.priority ? 'on' : ''}" data-star="${o.id}" aria-label="Ưu tiên">${IC_FLAG}</button>
       </div>
       <div class="meta">
@@ -743,7 +750,8 @@ function renderModal() {
   if (!o) return;
   const d = o.items.filter(i => i.done).length, t = o.items.length;
   const money = o.amount_total ? fmtMoney(o.amount_total, o.currency) : '';
-  const isManager = S.user && S.user.role === 'manager';
+  const isManager = S.user && (S.user.role === 'manager' || S.user.role === 'admin');
+  const isAdmin = S.user && S.user.role === 'admin';
   const isDone = o.status === 'done';
 
   $('#sheet').innerHTML = `
@@ -794,6 +802,12 @@ function renderModal() {
           ? `<button class="btn p" data-all="${o.id}">Hoàn tất đơn</button>`
           : `<button class="btn" data-all="${o.id}" disabled style="opacity:.45;cursor:not-allowed" title="Cần tick đủ tất cả ${t} món mới được hoàn tất">Tick đủ ${t} món để hoàn tất (${d}/${t})</button>`)
       }
+      ${isAdmin ? `
+        <button class="btn btn-del-order" style="margin-top:12px;width:100%;padding:10px 14px;display:flex;align-items:center;justify-content:center;gap:6px" data-del-order="${o.id}">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+          <span>Xóa vĩnh viễn đơn hàng này</span>
+        </button>
+      ` : ''}
     </div>`;
 }
 
@@ -1001,6 +1015,78 @@ async function saveMixLots() {
   closeMixModal();
 }
 
+/* ---- MODAL PHÂN QUYỀN & QUẢN LÝ NGƯỜI DÙNG (DÀNH CHO ADMIN) ---- */
+function closeUsersModal() {
+  const m = $('#users-modal');
+  if (m) m.classList.remove('on');
+}
+
+async function openUsersModal() {
+  const m = $('#users-modal');
+  const sheet = $('#users-sheet');
+  sheet.innerHTML = `
+    <header style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid var(--line);padding-bottom:12px">
+      <h3 style="margin:0;font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px">
+        <span>👥</span>
+        <span>Quản lý & Phân quyền tài khoản</span>
+      </h3>
+      <button class="btn" data-users-close="1" style="font-size:13.5px;padding:4px 8px">✕ Đóng</button>
+    </header>
+    <div id="users-list-body" style="min-height:120px;display:flex;align-items:center;justify-content:center;color:var(--mute)">
+      Đang tải danh sách tài khoản...
+    </div>
+  `;
+  m.classList.add('on');
+
+  try {
+    const res = await api('/api/users');
+    if (!res || !res.ok) throw new Error(res?.error || 'Không tải được danh sách người dùng');
+    renderUsersList(res.users || []);
+  } catch (err) {
+    const b = $('#users-list-body');
+    if (b) b.innerHTML = `<div style="color:var(--warn);text-align:center">${esc(err.message)}</div>`;
+  }
+}
+
+function renderUsersList(users) {
+  const container = $('#users-list-body');
+  if (!container) return;
+  if (!users.length) {
+    container.innerHTML = '<div style="color:var(--mute);text-align:center">Chưa có người dùng nào</div>';
+    return;
+  }
+
+  container.style.display = 'block';
+  container.innerHTML = `
+    <div style="font-size:12.5px;color:var(--mute);margin-bottom:14px;line-height:1.4">
+      Tài khoản <b>admin</b> có quyền chuyển đổi vai trò giữa <b>Quản lý</b> và <b>Đóng hàng</b> cho tất cả nhân viên.
+    </div>
+    <div class="user-items-container">
+      ${users.map(u => {
+        const isAdminUser = u.username === 'admin' || u.role === 'admin';
+        return `
+          <div class="user-item-row">
+            <div class="user-item-meta">
+              <b>${esc(u.display_name)} <span style="font-weight:normal;color:var(--mute)">(@${esc(u.username)})</span></b>
+              <small>Tạo: ${new Date(u.created_at).toLocaleDateString('vi-VN')} · Hiện tại: <b style="color:${u.role === 'admin' ? '#dc2626' : (u.role === 'manager' ? '#8b5cf6' : 'var(--pri)')}">${u.role === 'admin' ? 'Quản trị viên' : (u.role === 'manager' ? 'Quản lý' : 'Đóng hàng')}</b></small>
+            </div>
+            <div>
+              ${isAdminUser ? `
+                <span style="font-size:12px;font-weight:700;color:#dc2626;background:var(--head);padding:4px 8px;border-radius:4px">Admin</span>
+              ` : `
+                <div class="role-btn-group">
+                  <button class="role-btn ${u.role === 'manager' ? 'active manager' : ''}" data-change-role="manager" data-uid="${u.id}" data-uname="${esc(u.display_name)}">Quản lý</button>
+                  <button class="role-btn ${u.role === 'packer' ? 'active' : ''}" data-change-role="packer" data-uid="${u.id}" data-uname="${esc(u.display_name)}">Đóng hàng</button>
+                </div>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
 async function act(fn, opts = {}) {
   try {
     await fn();
@@ -1074,6 +1160,51 @@ document.addEventListener('click', e => {
   if (t.closest('#btn-mix')) return openMixModal();
   if (q('mix-close') || t.id === 'mix-modal') return closeMixModal();
   if (q('mix-save')) return saveMixLots();
+
+  // Admin: Mở modal phân quyền & quản lý người dùng
+  if (t.closest('#btn-users')) return openUsersModal();
+  if (q('users-close') || t.id === 'users-modal') return closeUsersModal();
+
+  // Admin: Thay đổi vai trò người dùng
+  if ((el = q('change-role'))) {
+    const uid = el.dataset.uid;
+    const newRole = el.dataset.changeRole;
+    const uname = el.dataset.uname;
+    api('/api/users/' + uid + '/role', 'PATCH', { role: newRole }).then(async res => {
+      if (res && res.ok) {
+        toast(`Đã chuyển vai trò của ${uname} sang ${newRole === 'manager' ? 'Quản lý' : 'Đóng hàng'}`);
+        const refreshed = await api('/api/users');
+        if (refreshed?.ok) renderUsersList(refreshed.users);
+      } else {
+        toast(res?.error || 'Không thể đổi vai trò');
+      }
+    }).catch(err => toast(err.message || 'Lỗi kết nối khi đổi vai trò'));
+    return;
+  }
+
+  // Admin: Xóa đơn hàng
+  if ((el = q('del-order'))) {
+    e.stopPropagation();
+    const id = +el.dataset.delOrder;
+    const o = S.orders.find(x => x.id === id);
+    if (!o) return;
+    if (!confirm(`Bạn có chắc chắn muốn xóa vĩnh viễn đơn hàng ${o.label} (khách: ${o.customer || '—'})? Thao tác này không thể hoàn tác.`)) return;
+    api('/api/orders/' + id, 'DELETE').then(res => {
+      if (res && res.ok) {
+        S.orders = S.orders.filter(x => x.id !== id);
+        S.selected.delete(id);
+        if (S.open === id) {
+          S.open = null;
+          $('#modal').classList.remove('on');
+        }
+        toast(`Đã xóa vĩnh viễn đơn hàng ${o.label}`);
+        render();
+      } else {
+        toast(res?.error || 'Không thể xóa đơn hàng');
+      }
+    }).catch(err => toast(err.message || 'Lỗi kết nối khi xóa đơn'));
+    return;
+  }
   if (q('prep-all')) {
     S.selected.clear();
     return preserveScroll(render);
@@ -1270,9 +1401,19 @@ async function init() {
       S.user = me.user;
       $('#user-name').textContent = S.user.display_name;
       const b = $('#user-badge');
-      b.textContent = S.user.role === 'manager' ? 'Quản lý' : 'Đóng hàng';
-      b.classList.toggle('manager', S.user.role === 'manager');
+      if (S.user.role === 'admin') {
+        b.textContent = 'Admin';
+        b.className = 'user-badge admin';
+      } else if (S.user.role === 'manager') {
+        b.textContent = 'Quản lý';
+        b.className = 'user-badge manager';
+      } else {
+        b.textContent = 'Đóng hàng';
+        b.className = 'user-badge';
+      }
       $('#user-pill').style.display = 'inline-flex';
+      const btnUsers = $('#btn-users');
+      if (btnUsers) btnUsers.style.display = S.user.role === 'admin' ? 'inline-flex' : 'none';
     } else if (!DEMO) {
       window.location.href = '/login';
       return;

@@ -80,9 +80,15 @@ Tài liệu này định nghĩa toàn bộ quy tắc thiết kế, nghiệp vụ
 
 ## 4. Quy tắc Phân quyền & Người dùng (Roles & Auth)
 
-Hệ thống chia làm **2 loại vai trò người dùng** (Quy tắc đăng ký: Người đăng ký mới chỉ có thể là **Người đóng hàng** `packer`, vai trò **Quản lý** `manager` không cho phép tự do đăng ký):
+Hệ thống chia làm **3 vai trò người dùng** (Quy tắc đăng ký: Người đăng ký mới chỉ có thể là **Người đóng hàng** `packer`, vai trò **Quản lý** `manager` và **Quản trị viên** `admin` không cho phép tự do đăng ký):
 
-### A. Người Quản Lý (`manager`)
+### A. Quản Trị Viên (`admin`) - Tài khoản: `admin` / mật khẩu: `1234`
+- Có toàn bộ quyền theo dõi và giám sát như Quản lý.
+- **Quyền Xóa đơn hàng:** Có nút `🗑️ Xóa đơn hàng` trên thẻ đơn và trong modal chi tiết đơn để xóa vĩnh viễn đơn hàng và các mặt hàng liên quan.
+- **Quyền Phân quyền người dùng:** Có nút `👥 Phân quyền` trên thanh công cụ để xem danh sách nhân viên và chuyển đổi vai trò qua lại giữa **Quản lý** (`manager`) và **Người đóng hàng** (`packer`).
+- Không bị nhận chuông/TTS đơn mới (tương tự như Quản lý).
+
+### B. Người Quản Lý (`manager`)
 - Thấy toàn bộ giao diện theo dõi tiến độ đơn hàng và tổng hợp sản phẩm cần chuẩn bị.
 - **KHÔNG nhận thông báo / âm thanh / giọng đọc TTS về đơn mới** (tránh làm phiền người quản lý khi kho nhận đơn).
 - **Tính năng Nhắc nhở đơn chưa xong:**
@@ -90,7 +96,7 @@ Hệ thống chia làm **2 loại vai trò người dùng** (Quy tắc đăng k�
   - Khi quản lý bấm nhắc nhở, hệ thống tạo thông báo gửi tới kho/người đóng hàng theo đúng mẫu:
     > `"[Tên người quản lý] đã nhắc nhở về đơn hàng của khách hàng [Tên khách] ngày [Ngày tạo đơn]"`
 
-### B. Người Đóng Hàng (`packer`)
+### C. Người Đóng Hàng (`packer`)
 - Thao tác đóng hàng: tick từng món, nhập mã lô, bấm hoàn tất đơn.
 - Nhận thông báo âm thanh + TTS giọng đọc tiếng Việt khi có đơn mới.
 - Nhận thông báo âm thanh + TTS khi có nhắc nhở từ người quản lý.

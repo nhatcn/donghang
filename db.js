@@ -13,7 +13,21 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 
 fs.mkdirSync(DATA_DIR, { recursive: true });
-export const db = new DatabaseSync(path.join(DATA_DIR, 'orders.db'));
+
+const targetDb = path.join(DATA_DIR, 'orders.db');
+const seedDb = path.join(__dirname, 'seed_data', 'orders.db');
+
+// Tự động sao chép database ban đầu vào volume mount khi deploy mới
+if (!fs.existsSync(targetDb) && fs.existsSync(seedDb)) {
+  try {
+    fs.copyFileSync(seedDb, targetDb);
+    console.log('Đã sao chép database ban đầu vào', targetDb);
+  } catch (err) {
+    console.error('Lỗi sao chép seed database:', err);
+  }
+}
+
+export const db = new DatabaseSync(targetDb);
 db.exec(`
   PRAGMA journal_mode=WAL;
   CREATE TABLE IF NOT EXISTS orders(
@@ -105,6 +119,42 @@ export function getUserByUsername(username) {
 export function getUserById(id) {
   return db.prepare('SELECT id, username, display_name, role, created_at FROM users WHERE id = ?').get(Number(id));
 }
+
+export function getAllUsers() {
+  return db.prepare('SELECT id, username, display_name, role, created_at FROM users ORDER BY id ASC').all();
+}
+
+export function updateUserRole(userId, newRole) {
+  if (newRole !== 'manager' && newRole !== 'packer') {
+    throw new Error('Vai trò chỉ có thể là Quản lý hoặc Đóng hàng');
+  }
+  const u = getUserById(userId);
+  if (!u) throw new Error('Không tìm thấy người dùng');
+  if (u.username === 'admin' || u.role === 'admin') {
+    throw new Error('Không thể thay đổi vai trò của tài khoản admin');
+  }
+  db.prepare('UPDATE users SET role = ? WHERE id = ?').run(newRole, Number(userId));
+  return getUserById(userId);
+}
+
+// Khởi tạo tài khoản admin mặc định: admin / 1234
+export function initAdminUser() {
+  const existing = getUserByUsername('admin');
+  const { hash, salt } = hashPassword('1234');
+  if (!existing) {
+    db.prepare(`
+      INSERT INTO users (username, password_hash, salt, display_name, role, created_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run('admin', hash, salt, 'Quản trị viên', 'admin', Date.now());
+    console.log('Đã tạo tài khoản admin (mật khẩu: 1234)');
+  } else {
+    db.prepare(`
+      UPDATE users SET role = 'admin', password_hash = ?, salt = ?, display_name = 'Quản trị viên'
+      WHERE username = 'admin'
+    `).run(hash, salt);
+  }
+}
+initAdminUser();
 
 export function createSession(userId) {
   const token = crypto.randomBytes(32).toString('hex');
@@ -214,4 +264,18 @@ export function completeOrder(orderId, userId = null, userName = '') {
     SET status='done', done_at=?, confirmed_by=?, confirmed_by_name=? 
     WHERE id=? AND status!='cancelled'
   `).run(Date.now(), userId ? Number(userId) : null, userName || '', orderId);
+}
+
+export function deleteOrder(orderId) {
+  const id = Number(orderId);
+  db.exec('BEGIN');
+  try {
+    db.prepare('DELETE FROM items WHERE order_id=?').run(id);
+    db.prepare('DELETE FROM orders WHERE id=?').run(id);
+    db.exec('COMMIT');
+    return true;
+  } catch (e) {
+    db.exec('ROLLBACK');
+    throw e;
+  }
 }

@@ -371,6 +371,11 @@ body.login-page {
 <div id="toast"></div>
 
 <script>
+// Tự động làm sạch URL trên thanh địa chỉ nếu có đuôi .html
+if (window.location.pathname.endsWith('.html')) {
+  window.history.replaceState(null, '', '/login' + window.location.search);
+}
+
 const $ = s => document.querySelector(s);
 function toast(msg) {
   const t = $('#toast');

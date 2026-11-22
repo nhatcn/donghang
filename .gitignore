@@ -9,9 +9,8 @@ yarn-error.log*
 .env.local
 .env.*.local
 
-# SQLite Database & Storage (dữ liệu cục bộ)
+# SQLite Database & Storage (dữ liệu cục bộ runtime)
 data/
-*.db
 *.db-journal
 *.db-wal
 *.db-shm

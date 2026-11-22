@@ -165,6 +165,51 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; background:
 .user-badge.manager {
   color: #8b5cf6;
 }
+.user-badge.admin {
+  color: #dc2626;
+}
+
+/* ================= MODAL QUẢN LÝ NGƯỜI DÙNG (ADMIN) ================= */
+#users-modal {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  display: none; align-items: center; justify-content: center; z-index: 100;
+  padding: 16px; box-sizing: border-box;
+}
+#users-modal.on { display: flex }
+#users-sheet {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+  max-width: 520px; width: 100%; max-height: 85vh; overflow-y: auto;
+  box-shadow: var(--shadow-lg); padding: 22px; box-sizing: border-box;
+}
+.user-item-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 0; border-bottom: 1px solid var(--line); gap: 12px;
+}
+.user-item-row:last-child { border-bottom: none }
+.user-item-meta { display: flex; flex-direction: column; gap: 2px; text-align: left; }
+.user-item-meta b { font-size: 14px; color: var(--text); }
+.user-item-meta small { font-size: 12px; color: var(--mute); }
+.role-btn-group {
+  display: inline-flex; background: var(--head); border: 1px solid var(--line);
+  border-radius: 6px; padding: 2px; gap: 2px;
+}
+.role-btn {
+  padding: 5px 10px; font-size: 12px; font-weight: 600; border-radius: 4px;
+  color: var(--mute); transition: all .15s ease; cursor: pointer;
+}
+.role-btn.active {
+  background: var(--card); color: var(--pri); box-shadow: var(--shadow-sm);
+}
+.role-btn.active.manager {
+  color: #8b5cf6;
+}
+.btn-del-order {
+  background: #dc2626 !important; color: #fff !important;
+  font-weight: 600; border-radius: 6px;
+}
+.btn-del-order:hover {
+  background: #b91c1c !important;
+}
 .user-logout {
   display: flex;
   align-items: center;
