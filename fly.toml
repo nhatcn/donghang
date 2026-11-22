@@ -3,7 +3,10 @@
 # See https://docs.fly.io/reference/configuration for information about how to use this file.
 #
 
-app = 'donghang'
+
+app = 'taycat'
+
+
 primary_region = 'sin'
 
 [build]
