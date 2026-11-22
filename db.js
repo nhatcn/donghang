@@ -23,6 +23,9 @@ const forceSeed = process.env.FORCE_SEED === '1';
 if (fs.existsSync(seedDb) && (!fs.existsSync(targetDb) || forceSeed)) {
   try {
     fs.copyFileSync(seedDb, targetDb);
+    // Xóa file journal/wal cũ nếu có để tránh xung đột
+    try { fs.unlinkSync(targetDb + '-wal'); } catch {}
+    try { fs.unlinkSync(targetDb + '-shm'); } catch {}
     console.log(forceSeed ? '[FORCE_SEED] Đã ghi đè database từ seed!' : 'Đã sao chép database ban đầu vào', targetDb);
   } catch (err) {
     console.error('Lỗi sao chép seed database:', err);
